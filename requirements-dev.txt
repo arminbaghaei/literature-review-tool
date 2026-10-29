@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest==9.2.0
+ruff==0.17.3
+reportlab==5.1.0
+pypdf==6.21.4
+# Optional: browser end-to-end script (benchmarks/e2e_browser.py). Also run: python -m playwright install chromium
+playwright==1.64.1

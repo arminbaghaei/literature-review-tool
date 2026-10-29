@@ -1,0 +1,33 @@
+# --- Private research data: never commit ---
+data/
+projects/
+*.pdf
+!tests/fixtures/synthetic/*.pdf
+exports/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.log
+logs/
+benchmarks/results/private/
+
+# --- Credentials ---
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# --- Python / tooling ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/

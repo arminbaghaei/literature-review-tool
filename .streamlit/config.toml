@@ -1,0 +1,16 @@
+[server]
+# Bind to this computer only. See README before exposing on a network.
+address = "localhost"
+port = 8501
+# Per-file upload limit in MB; keep in line with MAX_FILE_SIZE_MIB.
+maxUploadSize = 100
+maxMessageSize = 200
+headless = true
+runOnSave = false
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
