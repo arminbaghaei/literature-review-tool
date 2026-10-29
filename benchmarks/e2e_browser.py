@@ -13,6 +13,7 @@ the browser upload. Uses synthetic PDFs only.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 import threading
 import time
@@ -148,7 +149,7 @@ def main() -> int:
         results["server_rss_before_mib"] = round(sampler.base / 1048576)
         results["server_rss_peak_mib"] = round(sampler.peak / 1048576)
         body = page.inner_text("body")
-        results["batch_report_shows_rejection"] = "Not a PDF" in body
+        results["batch_report_shows_rejection"] = re.search(r"Rejected\s+1\b", body) is not None
 
         # Kill the worker while it is processing, then confirm the app restarts it and work completes.
         time.sleep(2)
@@ -193,7 +194,7 @@ def main() -> int:
         browser.close()
 
     for k, v in results.items():
-        print(f"{k}: {v}")
+        print(f"{k}: {v}".encode("ascii", "replace").decode())
     ok = all(
         results[k]
         for k in (
