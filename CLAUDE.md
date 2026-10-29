@@ -128,6 +128,7 @@ python -m pytest
 python -m ruff check .
 python -m ruff format --check .
 python -m streamlit run app.py
+python -m litreview.worker   # optional; the app starts the worker automatically
 ```
 
 - Add a type-check command only if a type checker is configured. Include any worker startup command required by the chosen implementation.

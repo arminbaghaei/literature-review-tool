@@ -87,7 +87,7 @@ model output, invalid citations, prompt injection in document text.
 7. [x] Streamlit UI
 8. [x] Tests, ruff, CI (GitHub Actions, Windows + Ubuntu)
 9. [x] Launch smoke test, AppTest UI tests, Playwright browser end-to-end script
-10. [~] Benchmarks: 100 real PDFs + worst-case large files; README results
+10. [x] Benchmarks: 100 real PDFs + worst-case large files; results in README
 11. [x] Push to GitHub (private repository arminbaghaei/literature-review-tool)
 
 ## Decisions made during implementation
@@ -96,6 +96,9 @@ model output, invalid citations, prompt injection in document text.
 - Worker autostart can be disabled with `LITREVIEW_NO_WORKER_AUTOSTART=1` (tests, services).
 - An unexpected crash in a run's final step marks the run `failed` instead of leaving it running.
 - Worst-case generator merges PDFs with pypdfium2 (pypdf failed on link annotations).
+- Worker crash recovery bug found by the browser test (restart raced the dying worker's lock) and fixed:
+  the worker waits up to 20 s for the lock and the status panel restarts a missing worker.
+- Browser uploads measured at ~2.3x batch size in server RAM, so large batches use folder import.
 
 ## Unfinished work and next steps
 
@@ -104,6 +107,8 @@ model output, invalid citations, prompt injection in document text.
   against a manually checked sample (metadata, sample sizes, quotations, citations).
 - Retrieval quality evaluation with known relevant passages on a real corpus.
 - Semantic/hybrid retrieval is not implemented (keyword BM25 only).
+- OCR throughput (~9.7 s/page) limits large scanned corpora; consider parallel page OCR or lower DPI.
+- Heuristic title guess uses only the first line; wrapped titles are truncated (labelled heuristic).
 
 ## Validation steps
 

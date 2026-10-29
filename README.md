@@ -166,9 +166,71 @@ To make it reachable over a network:
 Streamlit Community Cloud and similar free hosts are not suitable: they have small memory limits,
 ephemeral storage and public-by-default apps, which conflicts with private research data.
 
-## Measured capacity
+## Validation report (2026-10-30)
 
-See the validation report below.
+Host: Windows 11 Pro, AMD 12-thread CPU, 15.3 GiB RAM, local SSD, Python 3.13.5, 2 extraction
+processes. The benchmark corpus and generated files were kept outside the repository.
+
+### Checks run
+
+| Check | Result |
+|---|---|
+| `python -m pytest` (50 tests: ingestion, limits, extraction, OCR, recovery, cancellation, search, isolation, deletion, matrix provenance, citations, AI paths with a fake provider, exports, UI pages) | All pass |
+| `ruff check` and `ruff format --check` | Pass |
+| GitHub Actions on Windows and Ubuntu | Pass |
+| Launch smoke test (`streamlit run`, health endpoint) | Pass |
+| Browser end-to-end (`benchmarks/e2e_browser.py`, Chromium) | Pass |
+
+The browser test uploads 14 files through the real uploader, kills the worker while 11 documents
+are still processing, refreshes the browser, and confirms that processing restarts and finishes.
+It then runs a keyword search, opens the source viewer and downloads the matrix CSV.
+
+### Measured capacity
+
+| Run | Files | Size | Pages | Time | Peak RAM | Failures |
+|---|---|---|---|---|---|---|
+| 100 real research papers (arXiv, born-digital) | 100 | 423 MiB (0.2 to 38 MiB each) | 2,720 | 4 min 14 s | 821 MiB | 0 |
+| Worst case: 89.7 MiB fully scanned PDF + 95.9 MiB text PDF | 2 | 186 MiB | 2,026 (261 OCR) | 42 min | 1,090 MiB | 0 |
+| Browser upload of 503 MiB (14 files) | 14 | 503 MiB | n/a | 8 s upload | Streamlit server 128 to 1,145 MiB | 0 |
+
+- **OCR speed**: about 9.7 seconds per scanned page with one process, so a 261-page scan takes
+  about 42 minutes. Two documents are OCR'd in parallel by default.
+- **OCR accuracy** on 21 sampled pages: 96% of words recovered (worst page 89%). Reading order on
+  tables and multi-column pages often differs from the original, so quotations from scanned pages
+  are more likely to be marked "requires verification".
+- **Disk**: the project folder needs about 1.07 to 1.1 times the PDF size (originals plus database).
+- **Search**: 28 of 30 known passages returned their source page in the top 5 (25 at rank 1).
+  Queries on absent topics returned no results. A query takes about 0.2 to 0.3 s.
+- **Heuristic titles** (no AI): 94 of 100 matched arXiv's records. Misses were titles wrapped
+  over two lines and one misleading PDF metadata title. All heuristic values are labelled for
+  verification.
+
+### Limits and what they mean
+
+- **Browser upload memory.** Streamlit holds browser uploads in memory: the measured server peak
+  was about 2.3 times the batch size. A 10,000 MiB browser batch would need over 20 GiB of RAM and
+  is **not supported** on this hardware. Use **Import from a folder**, which copies files from disk
+  in 8 MiB chunks; importing the 100 papers (423 MiB) took 9 seconds. Browser uploads up to about 1.5 GiB per batch
+  are reasonable on a 16 GB machine.
+- **Very long scanned documents.** At the measured OCR speed, the default per-document timeout of
+  one hour covers about 350 scanned pages. A longer scan times out with its completed pages kept;
+  **Retry** resumes from the last saved page. Raise `DOCUMENT_TIMEOUT_SECONDS` for very long scans.
+- **Not measured**: a scanned 100-paper corpus (expect hours of OCR), and network hosting limits.
+
+### Unresolved limitations
+
+- **AI features were not tested against the live Claude API.** No API key was available during
+  development. Every AI path (matrix extraction, questions, synthesis, summaries, drafting, budgets,
+  refusals, rate limits, citation checks) is tested with a fake provider. Before relying on it,
+  run matrix extraction on about five papers you know well and check metadata, sample sizes,
+  quotations and page citations by hand. Token and cost estimates are approximations until
+  compared with real usage, which the app records per call.
+- Search is keyword-only (BM25). Semantic or hybrid retrieval is not implemented.
+- Text extraction does not reconstruct tables or equations. Pages likely to contain tables or
+  statistics are flagged; check numbers there against the page image.
+- The app is single-user. The optional password is a basic gate, not multi-user access control.
+- A long single AI request blocks one AI worker thread. Cancelling a run stops further calls; a
+  request already in flight completes and is billed.
 
 ## Licences
 
