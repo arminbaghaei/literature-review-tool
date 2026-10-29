@@ -17,7 +17,6 @@ from pathlib import Path
 
 import pypdfium2 as pdfium
 from PIL import Image
-from pypdf import PdfReader, PdfWriter
 
 
 def scanned(sources: list[Path], out: Path, target: int) -> tuple[int, int]:
@@ -45,22 +44,21 @@ def scanned(sources: list[Path], out: Path, target: int) -> tuple[int, int]:
 
 
 def text(sources: list[Path], out: Path, target: int) -> tuple[int, int]:
-    writer = PdfWriter()
+    merged = pdfium.PdfDocument.new()
     size = 0
-    pages = 0
     for src in sources:
-        try:
-            reader = PdfReader(str(src))
-            for p in reader.pages:
-                writer.add_page(p)
-                pages += 1
-        except Exception:
+        if size + src.stat().st_size > target:
             continue
+        try:
+            pdf = pdfium.PdfDocument(str(src))
+        except pdfium.PdfiumError:
+            continue
+        merged.import_pages(pdf)
+        pdf.close()
         size += src.stat().st_size
-        if size >= target:
-            break
-    with open(out, "wb") as fh:
-        writer.write(fh)
+    pages = len(merged)
+    merged.save(str(out))
+    merged.close()
     return pages, out.stat().st_size
 
 

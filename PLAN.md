@@ -79,16 +79,31 @@ model output, invalid citations, prompt injection in document text.
 ## Steps and progress
 
 1. [x] Repository inspection, REQUIREMENTS.md, PLAN.md
-2. [ ] Config, DB, filestore, projects
-3. [ ] Ingest + extraction + OCR + chunking + search
-4. [ ] Jobs + worker with recovery and cancellation
-5. [ ] AI adapter, citations, matrix, analysis features
-6. [ ] Exports
-7. [ ] Streamlit UI
-8. [ ] Tests, ruff, CI
-9. [ ] Launch smoke test and UI tests
-10. [ ] Benchmarks: 100 real PDFs + worst-case large file; README results
-11. [ ] Push to GitHub (private repository)
+2. [x] Config, DB, filestore, projects
+3. [x] Ingest + extraction + OCR + chunking + search
+4. [x] Jobs + worker with recovery and cancellation
+5. [x] AI adapter, citations, matrix, analysis features (tested with a fake provider only)
+6. [x] Exports
+7. [x] Streamlit UI
+8. [x] Tests, ruff, CI (GitHub Actions, Windows + Ubuntu)
+9. [x] Launch smoke test, AppTest UI tests, Playwright browser end-to-end script
+10. [~] Benchmarks: 100 real PDFs + worst-case large files; README results
+11. [x] Push to GitHub (private repository arminbaghaei/literature-review-tool)
+
+## Decisions made during implementation
+
+- The default Streamlit page is served at the site root; other pages have URL paths.
+- Worker autostart can be disabled with `LITREVIEW_NO_WORKER_AUTOSTART=1` (tests, services).
+- An unexpected crash in a run's final step marks the run `failed` instead of leaving it running.
+- Worst-case generator merges PDFs with pypdfium2 (pypdf failed on link annotations).
+
+## Unfinished work and next steps
+
+- Live Claude API validation: no API key was available during development. All AI paths are tested
+  against a fake provider. Next step: run matrix extraction on 5 papers with a real key and compare
+  against a manually checked sample (metadata, sample sizes, quotations, citations).
+- Retrieval quality evaluation with known relevant passages on a real corpus.
+- Semantic/hybrid retrieval is not implemented (keyword BM25 only).
 
 ## Validation steps
 

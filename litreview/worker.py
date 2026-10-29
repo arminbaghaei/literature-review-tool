@@ -31,6 +31,8 @@ log = logging.getLogger("litreview.worker")
 
 AI_JOB_KINDS = (jobs.JOB_AI_EXTRACT, jobs.JOB_AI_SUMMARY, jobs.JOB_AI_QA_DOC, jobs.JOB_RUN_FINALIZE)
 CANCEL_GRACE_SECONDS = 20
+LOCK_WAIT_SECONDS = 20
+_last_spawn = -1e9
 
 
 class WorkerLock:
@@ -249,8 +251,13 @@ def ensure_worker_running(ctx: AppContext) -> bool:
 
     Set ``LITREVIEW_NO_WORKER_AUTOSTART=1`` to manage the worker yourself (tests, services).
     """
+    global _last_spawn
     if os.environ.get("LITREVIEW_NO_WORKER_AUTOSTART") == "1" or jobs.worker_alive(ctx):
         return False
+    # A freshly started worker needs a few seconds to register; avoid spawning duplicates meanwhile.
+    if time.monotonic() - _last_spawn < LOCK_WAIT_SECONDS + 5:
+        return False
+    _last_spawn = time.monotonic()
     log_dir = ctx.settings.data_dir / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, "-m", "litreview.worker", "--data-dir", str(ctx.settings.data_dir)]
@@ -279,9 +286,13 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     ctx = create_context(args.data_dir)
     lock = WorkerLock(ctx.settings.data_dir / "worker.lock")
-    if not lock.acquire():
-        log.info("Another worker is already running for %s", ctx.settings.data_dir)
-        return 0
+    # A previous worker may still be shutting down (e.g. just killed); wait briefly for its lock.
+    deadline = time.monotonic() + LOCK_WAIT_SECONDS
+    while not lock.acquire():
+        if time.monotonic() > deadline:
+            log.info("Another worker is already running for %s", ctx.settings.data_dir)
+            return 0
+        time.sleep(1)
     try:
         log.info("Worker started (pid %s)", os.getpid())
         Worker(ctx).run_forever(idle_exit_seconds=args.idle_exit)

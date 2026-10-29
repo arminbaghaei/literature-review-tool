@@ -285,9 +285,13 @@ def processing_status(project_id: str) -> None:
             text=f"{len(docs) - active}/{len(docs)} documents finished · {done_pages}/{total_pages or '?'} pages of active documents",
         )
     if not worker_ok:
-        st.warning("The background worker is not running. Processing resumes when it starts.")
-        if st.button("Start worker"):
-            ensure_worker_running(ctx)
+        # Restart automatically (rate-limited inside ensure_worker_running), e.g. after a crash.
+        started = ensure_worker_running(ctx)
+        st.warning(
+            "The background worker is not running"
+            + ("; starting it now." if started else ".")
+            + " Processing resumes from the last saved page when it starts."
+        )
     elif not active:
         st.caption("Worker idle. All queued work is finished.")
     if not docs:
