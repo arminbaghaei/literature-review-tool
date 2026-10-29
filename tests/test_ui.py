@@ -51,7 +51,8 @@ def _page(name: str) -> AppTest:
 
 
 @pytest.mark.parametrize(
-    "name", ["projects", "upload", "documents", "settings", "search", "matrix", "synthesis", "writing", "export"]
+    "name",
+    ["projects", "upload", "documents", "settings", "search", "matrix", "synthesis", "writing", "export"],
 )
 def test_every_page_renders_without_errors(ui_env, name):
     at = _page(name).run()

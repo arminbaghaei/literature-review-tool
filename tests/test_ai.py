@@ -445,3 +445,15 @@ def test_exports_include_coverage_and_status(ctx, loaded, fake):
     data = json.loads(export.project_json(ctx, loaded.id))
     assert data["coverage"]["documents"] == 2 and data["matrix"][0]["sample_size__evidence"]
     assert export.evidence_csv(ctx, loaded.id).startswith("evidence_id,")
+
+
+def test_unexpected_finalize_crash_marks_run_failed(ctx, loaded, fake, monkeypatch):
+    from litreview.analysis import synthesis
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("unexpected")
+
+    _run(ctx, loaded, runner.RUN_MATRIX)
+    monkeypatch.setattr(synthesis, "run_synthesis", boom)
+    run = _run(ctx, loaded, runner.RUN_SYNTHESIS, {"focus": "x"})
+    assert run["status"] == "failed" and "unexpected" in run["error"]

@@ -90,7 +90,9 @@ def active_at_kill(db_path: str) -> int:
 
     conn = sqlite3.connect(db_path)
     try:
-        return conn.execute("SELECT COUNT(*) FROM documents WHERE status IN ('queued', 'processing')").fetchone()[0]
+        return conn.execute(
+            "SELECT COUNT(*) FROM documents WHERE status IN ('queued', 'processing')"
+        ).fetchone()[0]
     finally:
         conn.close()
 
@@ -100,7 +102,9 @@ def main() -> int:
     ap.add_argument("--url", default="http://localhost:8599")
     ap.add_argument("--workdir", required=True)
     ap.add_argument("--data-dir-hint", default="lr_e2e")
-    ap.add_argument("--db", required=True, help="Path to the app's litreview.db (to confirm work was in progress)")
+    ap.add_argument(
+        "--db", required=True, help="Path to the app's litreview.db (to confirm work was in progress)"
+    )
     ap.add_argument("--big-mib", type=int, default=0)
     ap.add_argument("--big-count", type=int, default=0)
     args = ap.parse_args()
@@ -110,7 +114,9 @@ def main() -> int:
     files = [
         make_text_pdf(work / "paper_a.pdf", PAPER_A * 10),
         make_text_pdf(work / "paper_b.pdf", PAPER_B * 10),
-        make_scanned_pdf(work / "scanned.pdf", [["Scanned survey of 42 participants", "Results were mixed"]] * 40),
+        make_scanned_pdf(
+            work / "scanned.pdf", [["Scanned survey of 42 participants", "Results were mixed"]] * 40
+        ),
     ]
     (work / "not_really.pdf").write_bytes(b"this is not a pdf")
     files.append(work / "not_really.pdf")
@@ -148,10 +154,16 @@ def main() -> int:
         time.sleep(2)
         killed = 0
         for proc in worker_processes(args.data_dir_hint):
-            for child in proc.children(recursive=True):
-                child.kill()
-            proc.kill()
-            killed += 1
+            try:
+                victims = [*proc.children(recursive=True), proc]
+            except psutil.Error:
+                victims = [proc]
+            for victim in victims:
+                try:
+                    victim.kill()
+                    killed += 1
+                except psutil.Error:
+                    pass
         results["workers_killed_mid_run"] = killed
         results["active_documents_at_kill"] = active_at_kill(args.db)
         page.reload()  # browser refresh; also triggers worker autostart

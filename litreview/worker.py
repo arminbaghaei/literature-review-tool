@@ -231,7 +231,10 @@ class Worker:
             handle_ai_job(self.ctx, job)
         except Exception as exc:
             log.exception("AI job %s failed", job.id)
-            jobs.finish(self.ctx, job.id, "failed", error=f"{type(exc).__name__}: {exc}")
+            message = f"{type(exc).__name__}: {exc}"
+            jobs.finish(self.ctx, job.id, "failed", error=message)
+            if job.kind == jobs.JOB_RUN_FINALIZE and job.run_id:
+                jobs.set_run_status(self.ctx, job.run_id, "failed", error=message)
 
     def _reap_ai(self) -> None:
         for job_id, fut in list(self.ai_futures.items()):

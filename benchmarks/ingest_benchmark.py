@@ -80,8 +80,10 @@ def main() -> int:
     sampler = TreeRss()
     sampler.start()
     t0 = time.time()
-    reports = [ingest_batch(ctx, project.id, files[i : i + settings.max_files_per_batch])
-               for i in range(0, len(files), settings.max_files_per_batch)]
+    reports = [
+        ingest_batch(ctx, project.id, files[i : i + settings.max_files_per_batch])
+        for i in range(0, len(files), settings.max_files_per_batch)
+    ]
     t_import = time.time() - t0
     Worker(ctx).run_until_idle(timeout=args.timeout, poll_seconds=0.5)
     t_total = time.time() - t0
@@ -115,9 +117,19 @@ def main() -> int:
         "duplicates": sum(r.duplicates for r in reports),
         "rejected": sum(r.rejected for r in reports),
         "input_mib": round(input_bytes / 2**20, 1),
-        "file_size_mib_min_median_max": [round(sizes[0] / 2**20, 2), round(sizes[len(sizes) // 2] / 2**20, 2), round(sizes[-1] / 2**20, 2)] if sizes else [],
+        "file_size_mib_min_median_max": [
+            round(sizes[0] / 2**20, 2),
+            round(sizes[len(sizes) // 2] / 2**20, 2),
+            round(sizes[-1] / 2**20, 2),
+        ]
+        if sizes
+        else [],
         "documents_by_status": statuses,
-        "failures": [{"file": d.filename, "status": d.status, "error": d.error} for d in docs if d.status in ("failed", "partial")],
+        "failures": [
+            {"file": d.filename, "status": d.status, "error": d.error}
+            for d in docs
+            if d.status in ("failed", "partial")
+        ],
         "pages_total": pages,
         "pages_ocr": ocr,
         "pages_low_confidence": low,
