@@ -41,6 +41,7 @@ PAGES = {
     "synthesis": ("litreview.ui.pages_analysis", "page_synthesis"),
     "writing": ("litreview.ui.pages_analysis", "page_writing"),
     "export": ("litreview.ui.pages_analysis", "page_export"),
+    "about": ("litreview.ui.pages_project", "page_about"),
 }
 
 
@@ -52,7 +53,18 @@ def _page(name: str) -> AppTest:
 
 @pytest.mark.parametrize(
     "name",
-    ["projects", "upload", "documents", "settings", "search", "matrix", "synthesis", "writing", "export"],
+    [
+        "projects",
+        "upload",
+        "documents",
+        "settings",
+        "search",
+        "matrix",
+        "synthesis",
+        "writing",
+        "export",
+        "about",
+    ],
 )
 def test_every_page_renders_without_errors(ui_env, name):
     at = _page(name).run()
@@ -132,3 +144,11 @@ def test_ai_run_panel_requires_explicit_approval(ui_env, monkeypatch):
     assert "Est. cost" in labels and "AI calls" in labels
     start = next(b for b in at.button if b.label == "Start run")
     assert start.disabled  # cannot start before approving the spend
+
+
+def test_branding_and_credit_on_every_page(ui_env):
+    at = AppTest.from_file("../app.py", default_timeout=60).run()
+    assert not at.exception
+    html = " ".join(m.value for m in at.markdown)
+    assert "Tech Innovation Experts" in html and "www.tinx.co.nz" in html
+    assert "ResearchMate Academy" in html and "Dr Abdollah Baghaei" in html

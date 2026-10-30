@@ -1,4 +1,10 @@
-# Literature Review Tool
+<p align="center"><a href="https://www.tinx.co.nz"><img src="assets/tinx_logo.png" alt="Tech Innovation Experts" width="320"></a></p>
+
+# ResearchMate Literature Review
+
+**Designed and powered by [Tech Innovation Experts](https://www.tinx.co.nz) · www.tinx.co.nz**
+
+**Owner: ResearchMate Academy: Dr Abdollah Baghaei**
 
 A private, single-user research tool for working with about 100 research PDFs in one review
 project. It extracts text with page references (with OCR for scanned pages), builds a keyword
@@ -148,7 +154,8 @@ Each PDF is processed in its own child process with a timeout, so a bad file onl
 
 ## Deployment
 
-The supported deployment is **local, single user**: `scriptsun.ps1` binds the app to `localhost` only.
+The supported deployment is **local, single user**: `scripts
+un.ps1` binds the app to `localhost` only.
 
 To run it for yourself on another Windows machine or a Windows VM, repeat the setup steps there.
 To make it reachable over a network:
@@ -262,3 +269,8 @@ Dependencies use permissive licences: Streamlit, pypdfium2/PDFium, RapidOCR (and
 models), opencv-python-headless and pytest (Apache-2.0 or MIT); ONNX Runtime and the Anthropic SDK
 (MIT); pandas, NumPy, psutil, reportlab and pypdf (BSD); Pillow (MIT-CMU). opencv-python-headless
 bundles LGPL FFmpeg libraries. PyMuPDF was avoided because of its AGPL licence.
+
+## Ownership
+
+Copyright © 2026 ResearchMate Academy. Designed and powered by Tech Innovation Experts
+(www.tinx.co.nz). No open-source licence has been granted for this code.

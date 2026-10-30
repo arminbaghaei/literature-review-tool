@@ -1,6 +1,6 @@
 [project]
 name = "litreview"
-version = "0.1.0"
+version = "1.0.0"
 description = "Private literature review research tool (Streamlit)"
 requires-python = ">=3.11"
 

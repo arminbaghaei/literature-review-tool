@@ -20,6 +20,17 @@ from litreview.documents import (
 )
 from litreview.ingest import IncomingFile, files_from_folder, ingest_batch, ingest_log
 from litreview.projects import ProjectError, create_project, delete_project, list_projects, update_project
+from litreview.ui.branding import (
+    APP_NAME,
+    APP_TAGLINE,
+    DEVELOPER,
+    DEVELOPER_DOMAIN,
+    DEVELOPER_URL,
+    LOGO,
+    OWNER,
+    OWNER_PERSON,
+    hero,
+)
 from litreview.ui.common import (
     STATUS_ICON,
     current_project,
@@ -31,18 +42,42 @@ from litreview.ui.common import (
 )
 from litreview.worker import ensure_worker_running
 
+HOW_IT_WORKS = [
+    (
+        "1. Add your papers",
+        "Upload up to 100 PDFs per batch, or import a whole folder. Scanned pages are read with OCR.",
+    ),
+    (
+        "2. Check the sources",
+        "See which pages were read, flag duplicates, and open any page beside its extracted text.",
+    ),
+    (
+        "3. Build the matrix",
+        "Extract aims, methods, samples, findings and limitations, each linked to a quoted page.",
+    ),
+    (
+        "4. Synthesise and write",
+        "Ask questions, compare studies, find themes and gaps, and draft sections with page citations.",
+    ),
+]
+
 
 def page_projects() -> None:
     ctx = get_ctx()
-    st.title("Projects")
-    st.caption(
-        "Each project holds one review corpus. Projects, documents and processing state are saved on "
-        f"this computer in `{ctx.settings.data_dir}` and survive restarts."
-    )
+    hero(APP_NAME, APP_TAGLINE)
     projects = list_projects(ctx)
     current = current_project()
+    cols = st.columns(len(HOW_IT_WORKS))
+    for col, (title, text) in zip(cols, HOW_IT_WORKS, strict=True):
+        with col.container(border=True):
+            st.markdown(f"**{title}**")
+            st.caption(text)
+    st.caption(
+        "Your projects, PDFs and processing state are saved on this computer in "
+        f"`{ctx.settings.data_dir}` and survive restarts. Nothing is sent to an AI service until you approve a run."
+    )
     with st.form("new_project", clear_on_submit=True):
-        st.subheader("New project")
+        st.subheader("Start a new review project")
         name = st.text_input("Project name")
         question = st.text_area("Review question (optional, editable later)")
         if st.form_submit_button("Create project", type="primary"):
@@ -54,8 +89,9 @@ def page_projects() -> None:
             except ProjectError as exc:
                 st.error(str(exc))
     if not projects:
+        st.info("Create your first project above to get started.")
         return
-    st.subheader("Open a project")
+    st.subheader("Your projects")
     for p in projects:
         counts = status_counts(ctx, p.id)
         total = sum(counts.values())
@@ -408,3 +444,47 @@ def page_documents() -> None:
             remove_document(ctx, project.id, doc.id)
             st.rerun()
     st.caption(f"SHA-256 {doc.sha256} · {fmt_mib(doc.size_bytes)} · stored as {doc.id}.pdf")
+
+
+def page_about() -> None:
+    st.title(f"About {APP_NAME}")
+    left, right = st.columns([2, 1])
+    with left:
+        st.markdown(
+            f"""
+{APP_NAME} helps researchers turn a collection of research PDFs into an evidence-linked
+literature review: a searchable corpus, an editable review matrix, questions across papers,
+cross-study synthesis and draft sections, with every claim traceable to a document and page.
+
+**Owner:** {OWNER}: {OWNER_PERSON}
+
+**Designed and powered by:** [{DEVELOPER}]({DEVELOPER_URL}) · [{DEVELOPER_DOMAIN}]({DEVELOPER_URL})
+"""
+        )
+    with right:
+        if LOGO.exists():
+            st.image(str(LOGO), width="stretch")
+
+    st.subheader("Your data")
+    st.markdown(
+        """
+- PDFs, extracted text and project records are stored on the computer or server running the app.
+- Text is sent to the Claude API (Anthropic) only when you approve an AI run, and only for the papers in scope.
+- The API key is read from the server environment. It is never shown, stored in projects or exported.
+- Deleting a project removes its files and records here. Copies already sent to the AI provider follow
+  the provider's retention policy.
+"""
+    )
+    st.subheader("Responsible use")
+    st.markdown(
+        """
+- AI output is a draft. Check every claim against the cited page before using it.
+- Values marked *requires verification*, *heuristic* or *tool synthesis* are not verified evidence.
+- Page citations refer to PDF page numbers, which can differ from the journal's printed page numbers.
+- Analysing an uploaded collection is not a complete systematic review: database searching,
+  screening protocols, reporting standards and meta-analysis are separate steps.
+"""
+    )
+    from litreview import __version__
+
+    st.caption(f"Version {__version__}")
