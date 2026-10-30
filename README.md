@@ -148,8 +148,7 @@ Each PDF is processed in its own child process with a timeout, so a bad file onl
 
 ## Deployment
 
-The supported deployment is **local, single user**: the app binds to `localhost` only
-(`.streamlit/config.toml`).
+The supported deployment is **local, single user**: `scriptsun.ps1` binds the app to `localhost` only.
 
 To run it for yourself on another Windows machine or a Windows VM, repeat the setup steps there.
 To make it reachable over a network:
@@ -163,8 +162,33 @@ To make it reachable over a network:
 - Run the worker as a service (for example with NSSM: `python -m litreview.worker`) and set
   `LITREVIEW_NO_WORKER_AUTOSTART=1` for the app.
 
-Streamlit Community Cloud and similar free hosts are not suitable: they have small memory limits,
-ephemeral storage and public-by-default apps, which conflicts with private research data.
+### Streamlit Community Cloud (demo or light use only)
+
+1. In Streamlit Community Cloud, create an app from this repository, branch `main`, file `app.py`,
+   Python 3.13.
+2. Under **Secrets**, add root-level keys (Streamlit exposes them as environment variables):
+
+   ```toml
+   ANTHROPIC_API_KEY = "sk-ant-..."
+   LITREVIEW_APP_PASSWORD = "choose-a-strong-password"
+   LITREVIEW_DATA_DIR = "/tmp/litreview"
+   BROWSER_UPLOAD_SAFE_MIB = "300"
+   ```
+
+3. In the app's sharing settings, restrict viewers to yourself.
+
+Know the trade-offs before uploading research PDFs there:
+
+- **Storage is not persistent.** Projects, uploads and extracted text are lost when the app
+  restarts, sleeps or is redeployed. Export your matrix and drafts after each session.
+- **Memory is limited**, and browser uploads are held in memory (about 2.3 times the batch size,
+  as measured above). Upload small batches. Folder import does not apply, because the folder would
+  have to be on Streamlit's server.
+- **Your PDFs are stored on Streamlit's infrastructure**, and the app is reachable on the internet.
+  The password is a basic single-user gate.
+
+This deployment path has not been tested. For ~100 large PDFs, run the app locally or on a
+private VM with persistent disk.
 
 ## Validation report (2026-10-30)
 
