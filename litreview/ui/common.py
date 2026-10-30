@@ -182,7 +182,8 @@ def ai_status_banner() -> bool:
     if not ai.available():
         st.warning(
             "AI features are off: no Anthropic API key is configured. Upload, extraction, browsing "
-            "and keyword search still work. See README → *Configure the Claude API*."
+            "and keyword search still work. To enable AI, run `scripts/set-api-key.ps1` (local) or add "
+            "`ANTHROPIC_API_KEY` to the app's secrets (Streamlit Cloud); see README."
         )
         return False
     return True

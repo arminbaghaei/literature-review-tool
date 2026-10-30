@@ -58,6 +58,9 @@ The app reads the key from the environment only. It never shows, stores, logs or
 A Claude chat subscription or Claude Code login does not give API access; create a key in the
 Claude Console.
 
+Easiest: run `powershell -ExecutionPolicy Bypass -File scripts\set-api-key.ps1` and paste the key.
+It is saved to your Windows user environment, never to the repository. Or set it manually:
+
 ```powershell
 # Current window only
 $env:ANTHROPIC_API_KEY = "sk-ant-..."

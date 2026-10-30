@@ -29,6 +29,13 @@ _CSS = """
   .rm-footer a { color: inherit; text-decoration: underline; }
   .rm-sidebar-credit { font-size: 0.75rem; color: rgba(49, 51, 63, 0.7); line-height: 1.5; }
   .rm-sidebar-credit a { color: inherit; }
+  .rm-topbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1.5rem;
+    background: #1F3A5F; color: #FFFFFF; border-radius: 0.6rem; padding: 0.75rem 1.1rem; margin-bottom: 1.2rem;
+    font-size: 0.98rem; line-height: 1.4;
+  }
+  .rm-topbar a { color: #FFFFFF; text-decoration: underline; font-weight: 600; }
+  .rm-topbar strong { font-weight: 700; }
   .rm-hero h1 { margin-bottom: 0.2rem; }
   .rm-hero p { font-size: 1.05rem; color: rgba(49, 51, 63, 0.8); margin-top: 0; }
 </style>
@@ -73,3 +80,15 @@ def footer() -> None:
 
 def hero(title: str, subtitle: str) -> None:
     st.markdown(f"<div class='rm-hero'><h1>{title}</h1><p>{subtitle}</p></div>", unsafe_allow_html=True)
+
+
+def top_banner() -> None:
+    """Prominent credit bar shown at the top of every page."""
+    st.markdown(
+        f"<div class='rm-topbar'>"
+        f"<span>Designed and powered by <a href='{DEVELOPER_URL}' target='_blank'>{DEVELOPER}</a> · "
+        f"<a href='{DEVELOPER_URL}' target='_blank'>{DEVELOPER_DOMAIN}</a></span>"
+        f"<span>Owner: <strong>{OWNER}: {OWNER_PERSON}</strong></span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
